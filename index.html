@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:url" content="https://v0-preview-bot-crawl.vercel.app/api/preview?redirect=true" />
+  <style>
+    body {
+      margin: 0;
+      background: #010715; /* Sleek dark background */
+      color: #4e5a74;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .loader {
+      text-align: center;
+    }
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-left-color: #4d6a97;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px auto;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .error-msg { color: #ef4444; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="loader" id="content">
+    <div class="spinner"></div>
+    <p>Redirecting....</p>
+    <a style="color:rgb(0, 125, 188); text-decoration: underline; text-decoration-style: dashed; text-decoration-color: #453b3b;" href="https://botfusion.wuaze.com/docs.html#api-tracking" target="_blank" rel="noopener noreferrer">Prowered by BotFusion APIs</a>
+  </div>
+
+  <script>
+    // Replace this with your actual Render API URL
+    const API_BASE_URL = "https://alight-koum.onrender.com"; 
+
+    async function processRedirect() {
+      const contentDiv = document.getElementById('content');
+      
+      // Extract the code from the end of the URL (e.g., site.com/aB3k9Z -> aB3k9Z)
+      const pathParts = window.location.pathname.split('/').filter(Boolean);
+      const shortCode = pathParts.pop();
+
+      if (!shortCode) {
+        contentDiv.innerHTML = '<p class="error-msg">Invalid Link: No tracking code found.</p>';
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/notify_click`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ short_code: shortCode })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.original_url) {
+            // Success! Redirect the user
+            window.location.replace(data.original_url);
+        } else {
+            // Handle 404s or errors from the API
+            contentDiv.innerHTML = `<p class="error-msg">${data.error || "Link not found or expired."}</p>`;
+        }
+
+      } catch (error) {
+        console.error("Redirection Error:", error);
+        contentDiv.innerHTML = '<p class="error-msg">Failed to connect to the server.</p>';
+      }
+    }
+
+    // Run immediately
+    processRedirect();
+  </script>
+</body>
+</html>
